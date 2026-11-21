@@ -11,6 +11,20 @@ var partida := Partida.new()
 var botoes: Array[Button] = []
 
 func _ready() -> void:
+	var voltar := Button.new()
+	voltar.text = "Menu inicial"
+	voltar.position = Vector2(801, 22)
+	voltar.size = Vector2(137, 36)
+	add_child(voltar)
+	var confirmar := ConfirmationDialog.new()
+	confirmar.title = "Voltar ao menu"
+	confirmar.dialog_text = "A partida atual será encerrada."
+	confirmar.ok_button_text = "Voltar ao menu"
+	confirmar.cancel_button_text = "Continuar jogando"
+	add_child(confirmar)
+	confirmar.confirmed.connect(func() -> void:
+		get_tree().change_scene_to_file("res://menu.tscn"))
+	voltar.pressed.connect(func() -> void: confirmar.popup_centered())
 	for i in range(3):
 		var botao := Button.new()
 		botao.position = Vector2(195 + 190 * i, 576)
@@ -100,6 +114,28 @@ func _carta(carta: int, caixa: Rect2) -> void:
 		_texto(RANKS[Mao.valor(carta) - 2], centro.x, caixa.position.y + caixa.size.y * 0.40, int(caixa.size.x * 0.34), tinta)
 		_texto(NAIPES[carta % 4], centro.x, caixa.position.y + caixa.size.y * 0.80, int(caixa.size.x * 0.42), tinta)
 
+func _pilha(centro: Vector2, quantidade: int, cor: Color) -> void:
+	for i in range(quantidade):
+		var topo := centro - Vector2(0, i * 4)
+		_oval(topo + Vector2(0, 3), Vector2(13, 7), cor.darkened(0.53))
+		_oval(topo, Vector2(13, 7), cor)
+		_oval(topo, Vector2(9, 4.6), MARFIM)
+		_oval(topo, Vector2(6, 3.2), cor.darkened(0.27))
+
+func _fichas(centro: Vector2, valor: int, cor: Color) -> void:
+	if valor == 0:
+		return
+	# A altura e o número de pilhas sugerem o volume. O rótulo mostra o valor exato.
+	var discos := clampi(ceili(valor / 5.0), 1, 15)
+	var pilhas := ceili(discos / 5.0)
+	for i in range(pilhas):
+		var posicao := centro + Vector2((i - (pilhas - 1) / 2.0) * 27, 0)
+		_pilha(posicao, mini(5, discos - i * 5), cor)
+
+func _aposta(centro: Vector2, rotulo: String, valor: int, cor: Color) -> void:
+	_fichas(centro, valor, cor)
+	_texto("%s · %d" % [rotulo, valor], centro.x, centro.y + 27, 14)
+
 func _draw() -> void:
 	draw_rect(Rect2(0, 0, 960, 640), Color("#15191f"))
 	_oval(Vector2(480, 305), Vector2(469, 220), Color("#211715"))
@@ -121,8 +157,12 @@ func _draw() -> void:
 		var carta := partida.mesa[i] if i < partida.mesa.size() else -2
 		_carta(carta, Rect2(287 + 79 * i, 193, 70, 96))
 	var pote := partida.pote
-	_texto("POTE  ·  %d" % pote if pote else "POTE ENTREGUE", 480, 327, 23, OURO)
-	_texto(partida.resultado if partida.encerrada else partida.ultima_acao, 480, 363, 18)
+	_fichas(Vector2(480, 318), pote, Color("#d99754"))
+	if not partida.encerrada:
+		_aposta(Vector2(700, 161), "APOSTA DO RIVAL", partida.apostas[1], Color("#a84563"))
+		_aposta(Vector2(245, 390), "SUA APOSTA", partida.apostas[0], Color("#4e97c0"))
+	_texto("POTE  ·  %d" % pote if pote else "POTE ENTREGUE", 480, 345, 21, OURO)
+	_texto(partida.resultado if partida.encerrada else partida.ultima_acao, 480, 373, 18)
 	for i in range(partida.jogador.size()):
 		_carta(partida.jogador[i], Rect2(389 + 94 * i, 395, 84, 116))
 	_texto("VOCÊ  ·  %d FICHAS%s" % [partida.fichas[0], "  ·  DEALER" if partida.botao == 0 else ""], 480, 543, 19, OURO)

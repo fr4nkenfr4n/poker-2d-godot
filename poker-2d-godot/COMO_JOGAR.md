@@ -1,7 +1,10 @@
 # Poker à Mesa
 
 Abra `project.godot` no Godot 4.7 e pressione **F5**. O protótipo é uma mesa local
-de Texas Hold’em Limit com dois lugares e fichas fictícias.
+de Texas Hold’em Limit com dois lugares e fichas fictícias. Selecione
+**Novo jogo** para abrir a mesa ou **Extras** para ler o guia de poker.
+Na mesa, as pilhas mostram o pote e as apostas da rodada. O pote já inclui
+essas apostas, e os rótulos informam os valores exatos.
 
 - Cada jogador começa com 200 fichas. Os blinds são 5 e 10.
 - O botão de dealer alterna a cada mão. O dealer age primeiro no pré-flop.
